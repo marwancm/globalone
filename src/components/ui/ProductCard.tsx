@@ -29,40 +29,52 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/shop/${product.id}`} className="group block">
-      <div className="bg-white dark:bg-dark-card rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-dark-border">
-        <div className="relative overflow-hidden aspect-square">
+      <div className="bg-white dark:bg-dark-card rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-dark-border hover:-translate-y-1">
+        <div className="relative overflow-hidden aspect-square bg-gray-50 dark:bg-gray-800">
           <img
             src={product.image_url || '/placeholder.jpg'}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
           {hasDiscount && (
-            <span className="absolute top-3 start-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-              -{getDiscountPercentage(product.price, product.discount_price!)}%
-            </span>
+            <div className="absolute top-0 start-0">
+              <div className="relative">
+                <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white px-3 py-2 rounded-br-2xl shadow-lg">
+                  <div className="text-xs font-medium uppercase tracking-wide opacity-90">{locale === 'ar' ? 'خصم' : 'Sale'}</div>
+                  <div className="text-2xl font-black leading-none">-{getDiscountPercentage(product.price, product.discount_price!)}%</div>
+                </div>
+              </div>
+            </div>
           )}
           {product.stock <= 0 && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">{t('outOfStock')}</span>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+              <div className="bg-white/90 dark:bg-gray-900/90 px-6 py-3 rounded-xl">
+                <span className="text-gray-900 dark:text-white font-bold text-base">{t('outOfStock')}</span>
+              </div>
+            </div>
+          )}
+          {product.stock > 0 && product.stock <= 5 && (
+            <div className="absolute bottom-3 start-3 bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
+              {locale === 'ar' ? `متبقي ${product.stock} فقط` : `Only ${product.stock} left`}
             </div>
           )}
         </div>
-        <div className="p-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-2 line-clamp-2 group-hover:text-primary-500 transition-colors">
+        <div className="p-5">
+          <h3 className="font-bold text-gray-900 dark:text-white text-base mb-3 line-clamp-2 min-h-[3rem] group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors leading-snug">
             {name}
           </h3>
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-baseline gap-2.5 mb-4">
             {hasDiscount ? (
               <>
-                <span className="text-lg font-bold text-primary-500">
+                <span className="text-2xl font-black text-primary-600 dark:text-primary-400">
                   {formatPrice(product.discount_price!, currency)}
                 </span>
-                <span className="text-sm text-gray-400 line-through">
+                <span className="text-base text-gray-400 line-through font-medium">
                   {formatPrice(product.price, currency)}
                 </span>
               </>
             ) : (
-              <span className="text-lg font-bold text-primary-500">
+              <span className="text-2xl font-black text-primary-600 dark:text-primary-400">
                 {formatPrice(product.price, currency)}
               </span>
             )}
@@ -70,8 +82,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleAddToCart}
             disabled={product.stock <= 0}
-            className="w-full py-2.5 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 text-white rounded-xl text-sm font-medium transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed"
+            className="w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 disabled:from-gray-300 disabled:to-gray-400 text-white rounded-xl text-sm font-bold transition-all duration-300 hover:shadow-lg hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none flex items-center justify-center gap-2"
           >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
             {product.stock > 0 ? t('addToCart') : t('outOfStock')}
           </button>
         </div>

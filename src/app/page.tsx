@@ -155,15 +155,59 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* Promotional Banner */}
+      <section className="py-4 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-4 text-center">
+            <span className="text-xl md:text-2xl font-black">
+              {locale === 'ar' ? '🎉 عروض رمضان - خصومات تصل إلى 50%' : '🎉 Ramadan Offers - Up to 50% OFF'}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Category Deals */}
+      <section className="py-12 bg-gray-50 dark:bg-dark-bg/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              { name_ar: 'الثلاجات', name_en: 'Refrigerators', discount: '25%', gradient: 'from-blue-500 to-blue-600' },
+              { name_ar: 'الغسالات', name_en: 'Washing Machines', discount: '30%', gradient: 'from-purple-500 to-purple-600' },
+              { name_ar: 'التلفزيونات', name_en: 'TVs & Audio', discount: '20%', gradient: 'from-pink-500 to-pink-600' },
+              { name_ar: 'اللابتوبات', name_en: 'Laptops', discount: '15%', gradient: 'from-indigo-500 to-indigo-600' },
+            ].map((item, idx) => (
+              <Link
+                key={idx}
+                href="/shop"
+                className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className={`bg-gradient-to-br ${item.gradient} p-6 md:p-8 text-white h-32 md:h-40 flex flex-col items-center justify-center text-center`}>
+                  <div className="text-4xl md:text-5xl font-black mb-1">{item.discount}</div>
+                  <div className="text-xs md:text-sm font-bold uppercase tracking-wide opacity-90">
+                    {locale === 'ar' ? 'خصم' : 'Discount'}
+                  </div>
+                  <div className="text-xs md:text-sm font-semibold mt-2">
+                    {locale === 'ar' ? item.name_ar : item.name_en}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Categories */}
-      <section className="py-16 bg-white dark:bg-dark-bg">
+      <section className="py-12 bg-white dark:bg-dark-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
               {t('categories')}
             </h2>
-            <Link href="/shop" className="text-primary-500 hover:text-primary-600 font-medium text-sm">
-              {t('viewAll')} →
+            <Link href="/shop" className="text-primary-600 hover:text-primary-700 font-bold text-sm flex items-center gap-1 group">
+              {t('viewAll')}
+              <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -171,14 +215,14 @@ export default function HomePage() {
               <Link
                 key={cat.id}
                 href={`/shop?category=${cat.id}`}
-                className="group bg-gray-50 dark:bg-dark-card border border-gray-100 dark:border-dark-border rounded-2xl p-6 text-center hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-500 transition-all duration-300"
+                className="group bg-white dark:bg-dark-card border-2 border-gray-100 dark:border-dark-border rounded-2xl p-5 text-center hover:shadow-xl hover:border-primary-400 dark:hover:border-primary-500 transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:bg-primary-200 dark:group-hover:bg-primary-800/40 transition-colors">
-                  <svg className="w-6 h-6 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/40 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-7 h-7 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </div>
-                <h3 className="font-semibold text-sm text-gray-900 dark:text-white group-hover:text-primary-500 transition-colors">
+                <h3 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                   {locale === 'ar' ? cat.name_ar : cat.name_en}
                 </h3>
               </Link>
@@ -188,40 +232,50 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products */}
-      <section className="py-16 bg-gray-50 dark:bg-dark-bg/50">
+      <section className="py-16 bg-white dark:bg-dark-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-3">
               {t('featuredProducts')}
             </h2>
-            <Link href="/shop" className="text-primary-500 hover:text-primary-600 font-medium text-sm">
-              {t('viewAll')} →
-            </Link>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              {locale === 'ar' ? 'اكتشف أحدث المنتجات المميزة بأفضل الأسعار' : 'Discover our latest featured products at the best prices'}
+            </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
             {loading
-              ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+              ? Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)
               : featuredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
+          </div>
+          <div className="text-center mt-10">
+            <Link href="/shop">
+              <button className="px-8 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                {t('viewAll')} →
+              </button>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* Best Sellers */}
-      <section className="py-16 bg-white dark:bg-dark-bg">
+      <section className="py-16 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-dark-bg dark:to-dark-bg/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+          <div className="text-center mb-10">
+            <div className="inline-block px-4 py-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full text-sm font-bold mb-3">
+              🔥 {locale === 'ar' ? 'الأكثر مبيعاً' : 'Best Sellers'}
+            </div>
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-3">
               {t('bestSellers')}
             </h2>
-            <Link href="/shop" className="text-primary-500 hover:text-primary-600 font-medium text-sm">
-              {t('viewAll')} →
-            </Link>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              {locale === 'ar' ? 'المنتجات الأكثر طلباً من عملائنا' : 'Most popular products from our customers'}
+            </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-6">
             {loading
-              ? Array.from({ length: 4 }).map((_, i) => <ProductCardSkeleton key={i} />)
+              ? Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)
               : bestSellers.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -229,27 +283,54 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Brands Section */}
+      <section className="py-12 bg-white dark:bg-dark-bg border-y border-gray-200 dark:border-dark-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h3 className="text-center text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-8">
+            {locale === 'ar' ? 'العلامات التجارية الموثوقة' : 'Trusted Brands'}
+          </h3>
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center opacity-60 hover:opacity-100 transition-opacity">
+            {['LG', 'Samsung', 'Bosch', 'Sony', 'Apple', 'Philips'].map((brand) => (
+              <div key={brand} className="text-center">
+                <div className="text-2xl font-black text-gray-400 dark:text-gray-600 hover:text-primary-500 transition-colors cursor-pointer">
+                  {brand}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Newsletter */}
-      <section className="py-16 bg-primary-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+      <section className="py-20 bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
+          <div className="inline-block p-3 bg-white/10 rounded-2xl mb-6">
+            <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
             {t('newsletter')}
           </h2>
-          <p className="text-primary-100 mb-8 max-w-lg mx-auto">
+          <p className="text-primary-50 text-lg mb-10 max-w-2xl mx-auto">
             {t('newsletterDesc')}
           </p>
-          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t('emailPlaceholder')}
-              className="flex-1 px-5 py-3 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-white"
+              className="flex-1 px-6 py-4 rounded-xl text-gray-900 outline-none focus:ring-4 focus:ring-white/50 shadow-lg text-base"
               required
             />
-            <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white px-8">
+            <button
+              type="submit"
+              className="px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            >
               {t('subscribe')}
-            </Button>
+            </button>
           </form>
         </div>
       </section>
