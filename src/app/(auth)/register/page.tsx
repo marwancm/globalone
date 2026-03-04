@@ -22,31 +22,49 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error(t('error'));
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } },
-    });
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
       if (data.user) {
+        // Insert user into public users table
         await supabase.from('users').insert({
           id: data.user.id,
           name,
           email,
           role: 'user',
         });
+
+        // If session exists (email confirmation disabled), redirect
+        if (data.session) {
+          toast.success(t('success'));
+          router.push('/');
+          router.refresh();
+        } else {
+          // Email confirmation required
+          toast.success(t('resetEmailSent'));
+          router.push('/login');
+        }
       }
-      toast.success(t('success'));
-      router.push('/');
-      router.refresh();
+    } catch {
+      toast.error(t('error'));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

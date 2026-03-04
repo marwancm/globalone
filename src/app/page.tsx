@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/hooks/useLocale';
 import { useCart } from '@/hooks/useCart';
@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import ProductCard from '@/components/ui/ProductCard';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
 import Button from '@/components/ui/Button';
-import type { Product, Category } from '@/types';
+import type { Product, Category, HeroSlide } from '@/types';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
@@ -16,6 +16,8 @@ export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const supabase = createClient();
@@ -23,18 +25,33 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const [productsRes, categoriesRes] = await Promise.all([
+      const [productsRes, categoriesRes, slidesRes] = await Promise.all([
         supabase.from('products').select('*').order('created_at', { ascending: false }).limit(8),
         supabase.from('categories').select('*').order('created_at', { ascending: false }),
+        supabase.from('hero_slides').select('*').eq('active', true).order('sort_order', { ascending: true }),
       ]);
       if (productsRes.data) {
         setFeaturedProducts(productsRes.data.slice(0, 4));
         setBestSellers(productsRes.data.slice(0, 4));
       }
       if (categoriesRes.data) setCategories(categoriesRes.data);
+      if (slidesRes.data && slidesRes.data.length > 0) setHeroSlides(slidesRes.data);
       setLoading(false);
     };
     fetchData();
+  }, []);
+
+  // Auto-advance slides
+  useEffect(() => {
+    if (heroSlides.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
+
+  const goToSlide = useCallback((index: number) => {
+    setCurrentSlide(index);
   }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
@@ -47,31 +64,95 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-primary-700 to-primary-500 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 relative">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
-              {t('heroTitle')}
-            </h1>
-            <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-              {t('heroSubtitle')}
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/shop">
-                <Button size="lg" className="bg-white text-primary-700 hover:bg-gray-100 shadow-xl">
-                  {t('shopNow')}
-                </Button>
-              </Link>
-              <Link href="/shop?category=all">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                  {t('exploreCategories')}
-                </Button>
-              </Link>
+      {/* Hero Slider */}
+      <section className="relative h-[400px] md:h-[520px] overflow-hidden bg-gray-900">
+        {heroSlides.length > 0 ? (
+          <>
+            {heroSlides.map((slide, index) => (
+              <div
+                key={slide.id}
+                className={`absolute inset-0 transition-all duration-700 ease-in-out ${
+                  index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+                }`}
+              >
+                <img
+                  src={slide.image_url}
+                  alt={locale === 'ar' ? slide.title_ar : slide.title_en}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                <div className="absolute inset-0 flex items-end">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 md:pb-20 w-full">
+                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white mb-3 drop-shadow-lg">
+                      {locale === 'ar' ? slide.title_ar : slide.title_en}
+                    </h1>
+                    <p className="text-base md:text-xl text-gray-200 mb-6 max-w-xl drop-shadow">
+                      {locale === 'ar' ? slide.subtitle_ar : slide.subtitle_en}
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <Link href={slide.link}>
+                        <Button size="lg" className="bg-primary-500 hover:bg-primary-600 text-white shadow-xl">
+                          {t('shopNow')}
+                        </Button>
+                      </Link>
+                      <Link href="/shop?category=all">
+                        <Button size="lg" variant="outline" className="border-white/80 text-white hover:bg-white/10 backdrop-blur-sm">
+                          {t('exploreCategories')}
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {/* Dot Indicators */}
+            {heroSlides.length > 1 && (
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2.5 z-10">
+                {heroSlides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className={`rounded-full transition-all duration-300 ${
+                      index === currentSlide
+                        ? 'w-8 h-2.5 bg-primary-500'
+                        : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/80'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+            {/* Arrow Navigation */}
+            {heroSlides.length > 1 && (
+              <>
+                <button
+                  onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
+                  className="absolute start-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white flex items-center justify-center transition-all z-10"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button
+                  onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
+                  className="absolute end-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm text-white flex items-center justify-center transition-all z-10"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </>
+            )}
+          </>
+        ) : (
+          /* Fallback hero if no slides */
+          <div className="relative h-full bg-gradient-to-br from-gray-900 via-primary-700 to-primary-500 flex items-center">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+              <div className="max-w-2xl">
+                <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight">{t('heroTitle')}</h1>
+                <p className="text-lg md:text-xl text-gray-200 mb-8">{t('heroSubtitle')}</p>
+                <Link href="/shop">
+                  <Button size="lg" className="bg-white text-primary-700 hover:bg-gray-100 shadow-xl">{t('shopNow')}</Button>
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* Categories */}

@@ -131,6 +131,12 @@ CREATE POLICY "Admins can view all order items" ON order_items FOR SELECT USING 
 -- Create a storage bucket for product images
 -- Run this in the Supabase Dashboard > Storage > Create new bucket named "images" (public)
 
+-- Function to get current user's role (bypasses RLS)
+CREATE OR REPLACE FUNCTION get_user_role()
+RETURNS TEXT AS $$
+  SELECT role FROM users WHERE id = auth.uid();
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
 -- Sample categories data
 INSERT INTO categories (name_ar, name_en) VALUES
   ('إلكترونيات', 'Electronics'),

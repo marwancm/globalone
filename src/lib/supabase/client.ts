@@ -1,13 +1,10 @@
-import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
-
-let client: SupabaseClient | null = null;
+let client: ReturnType<typeof createClientComponentClient> | null = null;
 
 export const createClient = () => {
   if (!client) {
-    client = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+    client = createClientComponentClient();
   }
   return client;
 };

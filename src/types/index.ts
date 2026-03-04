@@ -53,5 +53,18 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface HeroSlide {
+  id: string;
+  title_ar: string;
+  title_en: string;
+  subtitle_ar: string;
+  subtitle_en: string;
+  image_url: string;
+  link: string;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+}
+
 export type Locale = 'ar' | 'en';
 export type Theme = 'light' | 'dark';

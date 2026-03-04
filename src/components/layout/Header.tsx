@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/hooks/useLocale';
@@ -20,32 +20,44 @@ export default function Header() {
   const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        const { data } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-        if (data) setUserRole(data.role);
-      }
-    };
-    getUser();
+  const fetchRole = useCallback(async () => {
+    const { data, error } = await supabase.rpc('get_user_role');
+    if (data && !error) {
+      setUserRole(data);
+    }
+  }, [supabase]);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        fetchRole();
+      }
     });
 
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          fetchRole();
+        } else {
+          setUser(null);
+          setUserRole('user');
+        }
+      }
+    );
+
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchRole]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setUserRole('user');
     router.push('/');
+    router.refresh();
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -116,6 +128,19 @@ export default function Header() {
                 </svg>
               )}
             </button>
+
+            {/* Dashboard - Admin Only */}
+            {user && userRole === 'admin' && (
+              <Link
+                href="/dashboard"
+                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
+                title={t('dashboard')}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                </svg>
+              </Link>
+            )}
 
             {/* Cart */}
             <Link

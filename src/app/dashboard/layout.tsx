@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useLocale } from '@/hooks/useLocale';
+import { createClient } from '@/lib/supabase/client';
 
 const navItems = [
   { key: 'dashboard', href: '/dashboard', icon: '📊' },
@@ -11,11 +12,45 @@ const navItems = [
   { key: 'manageCategories', href: '/dashboard/categories', icon: '📂' },
   { key: 'manageOrders', href: '/dashboard/orders', icon: '📋' },
   { key: 'manageUsers', href: '/dashboard/users', icon: '👥' },
+  { key: 'heroSlides', href: '/dashboard/slides', icon: '🖼️' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+  const [authorized, setAuthorized] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
+      const { data: role } = await supabase.rpc('get_user_role');
+
+      if (role === 'admin') {
+        setAuthorized(true);
+      } else {
+        router.replace('/');
+      }
+      setChecking(false);
+    };
+    checkAdmin();
+  }, []);
+
+  if (checking) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full mx-auto"></div>
+      </div>
+    );
+  }
+
+  if (!authorized) return null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
