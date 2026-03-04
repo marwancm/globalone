@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { createClient } from '@/lib/supabase/client';
 import Button from '@/components/ui/Button';
@@ -16,7 +16,9 @@ export default function SlidesPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     title_ar: '',
     title_en: '',
@@ -42,6 +44,38 @@ export default function SlidesPage() {
     fetchSlides();
   }, []);
 
+  const uploadImage = async (file: File) => {
+    setUploading(true);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `slides/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from('images')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+    if (error) {
+      toast.error(locale === 'ar' ? 'فشل رفع الصورة' : 'Image upload failed');
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from('images').getPublicUrl(fileName);
+    setForm({ ...form, image_url: urlData.publicUrl });
+    setUploading(false);
+    toast.success(locale === 'ar' ? 'تم رفع الصورة' : 'Image uploaded');
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(locale === 'ar' ? 'حجم الصورة أكبر من 5MB' : 'Image size exceeds 5MB');
+        return;
+      }
+      uploadImage(file);
+    }
+  };
+
   const openAddModal = () => {
     setEditingSlide(null);
     setForm({ title_ar: '', title_en: '', subtitle_ar: '', subtitle_en: '', image_url: '', link: '/shop', sort_order: slides.length, active: true });
@@ -65,7 +99,7 @@ export default function SlidesPage() {
 
   const handleSave = async () => {
     if (!form.image_url) {
-      toast.error(locale === 'ar' ? 'رابط الصورة مطلوب' : 'Image URL is required');
+      toast.error(locale === 'ar' ? 'الصورة مطلوبة' : 'Image is required');
       return;
     }
     setSaving(true);
@@ -164,7 +198,54 @@ export default function SlidesPage() {
 
       {/* Add/Edit Modal */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingSlide ? (locale === 'ar' ? 'تعديل الصورة' : 'Edit Slide') : (locale === 'ar' ? 'إضافة صورة' : 'Add Slide')}>
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {locale === 'ar' ? 'الصورة' : 'Image'}
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            {form.image_url ? (
+              <div className="relative">
+                <img src={form.image_url} alt="Preview" className="w-full h-40 object-cover rounded-xl border border-gray-200 dark:border-dark-border" />
+                <button
+                  onClick={() => {
+                    setForm({ ...form, image_url: '' });
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="absolute top-2 end-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full h-40 border-2 border-dashed border-gray-300 dark:border-dark-border rounded-xl flex flex-col items-center justify-center gap-2 hover:border-primary-400 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 transition-all cursor-pointer"
+              >
+                {uploading ? (
+                  <div className="animate-spin w-8 h-8 border-3 border-primary-500 border-t-transparent rounded-full" />
+                ) : (
+                  <>
+                    <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {locale === 'ar' ? 'اضغط لرفع صورة (حد أقصى 5MB)' : 'Click to upload image (max 5MB)'}
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+
           <Input
             label={locale === 'ar' ? 'العنوان (عربي)' : 'Title (Arabic)'}
             value={form.title_ar}
@@ -185,16 +266,6 @@ export default function SlidesPage() {
             value={form.subtitle_en}
             onChange={(e) => setForm({ ...form, subtitle_en: e.target.value })}
           />
-          <Input
-            label={locale === 'ar' ? 'رابط الصورة' : 'Image URL'}
-            value={form.image_url}
-            onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-            placeholder="https://..."
-            required
-          />
-          {form.image_url && (
-            <img src={form.image_url} alt="Preview" className="w-full h-32 object-cover rounded-xl border" />
-          )}
           <Input
             label={locale === 'ar' ? 'رابط الزر' : 'Button Link'}
             value={form.link}

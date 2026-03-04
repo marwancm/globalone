@@ -105,3 +105,17 @@ INSERT INTO hero_slides (title_ar, title_en, subtitle_ar, subtitle_en, image_url
   ('أحدث المنتجات', 'Latest Products', 'اكتشف تشكيلتنا الجديدة', 'Discover our new collection', 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=600&fit=crop', '/shop', 0),
   ('عروض حصرية', 'Exclusive Deals', 'خصومات تصل إلى 50%', 'Up to 50% off', 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=1200&h=600&fit=crop', '/shop', 1),
   ('تسوق بسهولة', 'Shop with Ease', 'توصيل سريع لكل مكان', 'Fast delivery everywhere', 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=600&fit=crop', '/shop', 2);
+
+-- ============================================
+-- IMPORTANT: Create Storage Bucket manually!
+-- Go to Supabase Dashboard > Storage > Create new bucket
+-- Name: "images" | Public: ON
+-- Then add this policy in SQL Editor:
+-- ============================================
+
+INSERT INTO storage.buckets (id, name, public) VALUES ('images', 'images', true) ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Anyone can view images" ON storage.objects FOR SELECT USING (bucket_id = 'images');
+CREATE POLICY "Admins can upload images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'images' AND is_admin());
+CREATE POLICY "Admins can update images" ON storage.objects FOR UPDATE USING (bucket_id = 'images' AND is_admin());
+CREATE POLICY "Admins can delete images" ON storage.objects FOR DELETE USING (bucket_id = 'images' AND is_admin());
