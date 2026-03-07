@@ -23,7 +23,7 @@ export default function DashboardProductsPage() {
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const emptyForm = { name_ar: '', name_en: '', description_ar: '', description_en: '', price: '', discount_price: '', stock: '', category_id: '', image_url: '' };
+  const emptyForm = { name_ar: '', name_en: '', description_ar: '', description_en: '', price: '', discount_price: '', stock: '', category_id: '', brand: '', image_url: '' };
   const [form, setForm] = useState(emptyForm);
 
   const fetchProducts = async () => {
@@ -45,7 +45,7 @@ export default function DashboardProductsPage() {
     setEditing(p);
     setForm({
       name_ar: p.name_ar, name_en: p.name_en, description_ar: p.description_ar || '', description_en: p.description_en || '',
-      price: String(p.price), discount_price: String(p.discount_price || ''), stock: String(p.stock), category_id: p.category_id || '', image_url: p.image_url || '',
+      price: String(p.price), discount_price: String(p.discount_price || ''), stock: String(p.stock), category_id: p.category_id || '', brand: p.brand || '', image_url: p.image_url || '',
     });
     setImageFile(null);
     setShowModal(true);
@@ -184,6 +184,10 @@ export default function DashboardProductsPage() {
               <option value="">--</option>
               {categories.map((c) => <option key={c.id} value={c.id}>{locale === 'ar' ? c.name_ar : c.name_en}</option>)}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{locale === 'ar' ? 'العلامة التجارية' : 'Brand'}</label>
+            <input name="brand" value={form.brand} onChange={handleChange} placeholder={locale === 'ar' ? 'مثال: Samsung, Apple, LG' : 'e.g. Samsung, Apple, LG'} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-sm outline-none focus:ring-2 focus:ring-primary-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('image')}</label>
