@@ -1,4 +1,4 @@
-export function formatPrice(price: number, currency: string = 'SAR'): string {
+export function formatPrice(price: number, currency: string = 'EGP'): string {
   return `${price.toFixed(2)} ${currency}`;
 }
 
