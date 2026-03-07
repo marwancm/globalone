@@ -78,7 +78,11 @@ export default function HomePage() {
                 <img
                   src={slide.image_url}
                   alt={locale === 'ar' ? slide.title_ar : slide.title_en}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover md:object-cover object-center"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="600"%3E%3Crect fill="%23667eea" width="1200" height="600"/%3E%3Ctext fill="%23ffffff" font-family="sans-serif" font-size="48" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3EHero Image%3C/text%3E%3C/svg%3E';
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="absolute inset-0 flex items-end">
@@ -289,13 +293,37 @@ export default function HomePage() {
           <h3 className="text-center text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-8">
             {locale === 'ar' ? 'العلامات التجارية الموثوقة' : 'Trusted Brands'}
           </h3>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center opacity-60 hover:opacity-100 transition-opacity">
-            {['LG', 'Samsung', 'Bosch', 'Sony', 'Apple', 'Philips'].map((brand) => (
-              <div key={brand} className="text-center">
-                <div className="text-2xl font-black text-gray-400 dark:text-gray-600 hover:text-primary-500 transition-colors cursor-pointer">
-                  {brand}
-                </div>
-              </div>
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-6 md:gap-8 items-center">
+            {[
+              { name: 'LG', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/LG_logo_%282015%29.svg/200px-LG_logo_%282015%29.svg.png' },
+              { name: 'Samsung', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Samsung_Logo.svg/200px-Samsung_Logo.svg.png' },
+              { name: 'Bosch', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Bosch-logotype.svg/200px-Bosch-logotype.svg.png' },
+              { name: 'Sony', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Sony_logo.svg/200px-Sony_logo.svg.png' },
+              { name: 'Apple', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/200px-Apple_logo_black.svg.png' },
+              { name: 'Philips', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Philips_logo_new.svg/200px-Philips_logo_new.svg.png' },
+            ].map((brand) => (
+              <Link
+                key={brand.name}
+                href={`/shop?brand=${brand.name}`}
+                className="group flex items-center justify-center p-4 bg-gray-50 dark:bg-dark-card rounded-xl border border-gray-100 dark:border-dark-border hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              >
+                <img
+                  src={brand.logo}
+                  alt={brand.name}
+                  className="h-8 md:h-10 w-auto object-contain opacity-60 group-hover:opacity-100 transition-opacity filter grayscale group-hover:grayscale-0"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      const text = document.createElement('div');
+                      text.className = 'text-xl md:text-2xl font-black text-gray-400 dark:text-gray-600 group-hover:text-primary-500 transition-colors';
+                      text.textContent = brand.name;
+                      parent.appendChild(text);
+                    }
+                  }}
+                />
+              </Link>
             ))}
           </div>
         </div>

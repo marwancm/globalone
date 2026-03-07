@@ -18,6 +18,7 @@ export interface Product {
   images?: string[];
   stock: number;
   category_id: string;
+  brand?: string;
   created_at: string;
   category?: Category;
 }
