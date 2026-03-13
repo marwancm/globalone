@@ -225,10 +225,14 @@ export default function HomePage() {
                 href={`/shop?category=${cat.id}`}
                 className="group bg-white dark:bg-dark-card border-2 border-gray-100 dark:border-dark-border rounded-2xl p-5 text-center hover:shadow-xl hover:border-primary-400 dark:hover:border-primary-500 transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-14 h-14 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/40 rounded-2xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
-                  <svg className="w-7 h-7 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
+                <div className="w-20 h-20 bg-gray-100 dark:bg-dark-bg rounded-2xl flex items-center justify-center mx-auto mb-3 overflow-hidden group-hover:scale-110 transition-transform duration-300">
+                  {cat.image_url ? (
+                    <img src={getSupabaseImageUrl(cat.image_url)} alt={locale === 'ar' ? cat.name_ar : cat.name_en} className="w-full h-full object-cover" />
+                  ) : (
+                    <svg className="w-10 h-10 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  )}
                 </div>
                 <h3 className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                   {locale === 'ar' ? cat.name_ar : cat.name_en}

@@ -23,6 +23,8 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const supabase = createClient();
 
   useEffect(() => {
@@ -47,8 +49,56 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product || product.stock <= 0) return;
     addItem(product, quantity);
-    toast.success(locale === 'ar' ? 'تمت الإضافة للسلة' : 'Added to cart');
+    toast.success(t('addToCart'));
   };
+
+  const images = product?.images && product.images.length > 0 ? product.images : product?.image_url ? [product.image_url] : [];
+  const totalImages = images.length;
+
+  const nextImage = () => {
+    if (totalImages > 1) {
+      setSelectedImageIndex((prev) => (prev + 1) % totalImages);
+    }
+  };
+
+  const prevImage = () => {
+    if (totalImages > 1) {
+      setSelectedImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextImage();
+    }
+    if (isRightSwipe) {
+      prevImage();
+    }
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'ArrowRight') nextImage();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [totalImages]);
 
   const currency = t('currency');
   const name = product ? (locale === 'ar' ? product.name_ar : product.name_en) : '';
@@ -94,24 +144,57 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
         {/* Product Image Gallery */}
         <div className="space-y-4">
-          <div className="relative">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border">
+          <div className="relative group">
+            <div 
+              className="aspect-square rounded-2xl overflow-hidden bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border cursor-grab active:cursor-grabbing"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <img
-                src={getSupabaseImageUrl(product.images && product.images.length > 0 ? product.images[selectedImageIndex] : product.image_url)}
+                src={getSupabaseImageUrl(images[selectedImageIndex] || product.image_url)}
                 alt={name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover select-none"
+                draggable={false}
               />
             </div>
             {hasDiscount && (
-              <span className="absolute top-4 start-4 bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full">
+              <span className="absolute top-4 start-4 bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full z-10">
                 -{getDiscountPercentage(product.price, product.discount_price!)}%
               </span>
             )}
+            {/* Navigation Arrows */}
+            {totalImages > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-dark-card/90 hover:bg-white dark:hover:bg-dark-card text-gray-800 dark:text-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Previous image"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-dark-card/90 hover:bg-white dark:hover:bg-dark-card text-gray-800 dark:text-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label="Next image"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                {/* Image Counter */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
+                  {selectedImageIndex + 1} / {totalImages}
+                </div>
+              </>
+            )}
           </div>
           {/* Thumbnail Gallery */}
-          {product.images && product.images.length > 1 && (
+          {totalImages > 1 && (
             <div className="grid grid-cols-4 gap-3">
-              {product.images.map((img, idx) => (
+              {images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
