@@ -15,9 +15,10 @@ export interface Product {
   price: number;
   discount_price: number | null;
   image_url: string;
-  images?: string[];
+  images: string[] | null;
   stock: number;
   category_id: string;
+  brand?: string;
   created_at: string;
   category?: Category;
 }
@@ -61,6 +62,16 @@ export interface HeroSlide {
   subtitle_en: string;
   image_url: string;
   link: string;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+}
+
+export interface Brand {
+  id: string;
+  name_ar: string;
+  name_en: string;
+  logo_url: string | null;
   sort_order: number;
   active: boolean;
   created_at: string;

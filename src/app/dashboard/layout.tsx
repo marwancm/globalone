@@ -13,6 +13,7 @@ const navItems = [
   { key: 'manageOrders', href: '/dashboard/orders', icon: '📋' },
   { key: 'manageUsers', href: '/dashboard/users', icon: '👥' },
   { key: 'heroSlides', href: '/dashboard/slides', icon: '🖼️' },
+  { key: 'manageBrands', href: '/dashboard/brands', icon: '🏷️' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

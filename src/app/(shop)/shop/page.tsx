@@ -25,6 +25,7 @@ function ShopContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,8 +34,10 @@ function ShopContent() {
 
   useEffect(() => {
     const category = searchParams.get('category') || '';
+    const brand = searchParams.get('brand') || '';
     const search = searchParams.get('search') || '';
     if (category && category !== 'all') setSelectedCategory(category);
+    if (brand) setSelectedBrand(brand);
     if (search) setSearchQuery(search);
   }, [searchParams]);
 
@@ -53,6 +56,10 @@ function ShopContent() {
 
       if (selectedCategory) {
         query = query.eq('category_id', selectedCategory);
+      }
+
+      if (selectedBrand) {
+        query = query.eq('brand', selectedBrand);
       }
 
       if (searchQuery) {
@@ -80,7 +87,7 @@ function ShopContent() {
       setLoading(false);
     };
     fetchProducts();
-  }, [selectedCategory, searchQuery, sortBy, currentPage]);
+  }, [selectedCategory, selectedBrand, searchQuery, sortBy, currentPage]);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 

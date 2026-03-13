@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useCart } from '@/hooks/useCart';
 import { createClient } from '@/lib/supabase/client';
 import { formatPrice, getDiscountPercentage } from '@/utils/helpers';
+import { getSupabaseImageUrl } from '@/utils/supabase';
 import ProductCard from '@/components/ui/ProductCard';
 import Button from '@/components/ui/Button';
 import Skeleton from '@/components/ui/Skeleton';
@@ -21,6 +22,7 @@ export default function ProductDetailPage() {
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const supabase = createClient();
 
   useEffect(() => {
@@ -90,19 +92,43 @@ export default function ProductDetailPage() {
       </nav>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-        {/* Product Image */}
-        <div className="relative">
-          <div className="aspect-square rounded-2xl overflow-hidden bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border">
-            <img
-              src={product.image_url || '/placeholder.jpg'}
-              alt={name}
-              className="w-full h-full object-cover"
-            />
+        {/* Product Image Gallery */}
+        <div className="space-y-4">
+          <div className="relative">
+            <div className="aspect-square rounded-2xl overflow-hidden bg-white dark:bg-dark-card border border-gray-100 dark:border-dark-border">
+              <img
+                src={getSupabaseImageUrl(product.images && product.images.length > 0 ? product.images[selectedImageIndex] : product.image_url)}
+                alt={name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {hasDiscount && (
+              <span className="absolute top-4 start-4 bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full">
+                -{getDiscountPercentage(product.price, product.discount_price!)}%
+              </span>
+            )}
           </div>
-          {hasDiscount && (
-            <span className="absolute top-4 start-4 bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded-full">
-              -{getDiscountPercentage(product.price, product.discount_price!)}%
-            </span>
+          {/* Thumbnail Gallery */}
+          {product.images && product.images.length > 1 && (
+            <div className="grid grid-cols-4 gap-3">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${
+                    selectedImageIndex === idx
+                      ? 'border-primary-500 ring-2 ring-primary-200'
+                      : 'border-gray-200 dark:border-dark-border hover:border-primary-300'
+                  }`}
+                >
+                  <img
+                    src={getSupabaseImageUrl(img)}
+                    alt={`${name} ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 

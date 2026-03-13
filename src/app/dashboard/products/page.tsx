@@ -21,9 +21,10 @@ export default function DashboardProductsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
 
-  const emptyForm = { name_ar: '', name_en: '', description_ar: '', description_en: '', price: '', discount_price: '', stock: '', category_id: '', image_url: '' };
+  const emptyForm = { name_ar: '', name_en: '', description_ar: '', description_en: '', price: '', discount_price: '', stock: '', category_id: '', brand: '', image_url: '' };
   const [form, setForm] = useState(emptyForm);
 
   const fetchProducts = async () => {
@@ -40,14 +41,15 @@ export default function DashboardProductsPage() {
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, []);
 
-  const openAdd = () => { setEditing(null); setForm(emptyForm); setImageFile(null); setShowModal(true); };
+  const openAdd = () => { setEditing(null); setForm(emptyForm); setImageFiles([]); setExistingImages([]); setShowModal(true); };
   const openEdit = (p: Product) => {
     setEditing(p);
     setForm({
       name_ar: p.name_ar, name_en: p.name_en, description_ar: p.description_ar || '', description_en: p.description_en || '',
-      price: String(p.price), discount_price: String(p.discount_price || ''), stock: String(p.stock), category_id: p.category_id || '', image_url: p.image_url || '',
+      price: String(p.price), discount_price: String(p.discount_price || ''), stock: String(p.stock), category_id: p.category_id || '', brand: p.brand || '', image_url: p.image_url || '',
     });
-    setImageFile(null);
+    setImageFiles([]);
+    setExistingImages(p.images || [p.image_url].filter(Boolean));
     setShowModal(true);
   };
 
@@ -57,22 +59,25 @@ export default function DashboardProductsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    let image_url = form.image_url;
+    let images = [...existingImages];
 
-    if (imageFile) {
-      const ext = imageFile.name.split('.').pop();
-      const path = `products/${Date.now()}.${ext}`;
-      const { error: uploadErr } = await supabase.storage.from('images').upload(path, imageFile);
+    // Upload new images
+    for (const file of imageFiles) {
+      const ext = file.name.split('.').pop();
+      const path = `products/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('images').upload(path, file);
       if (!uploadErr) {
         const { data: urlData } = supabase.storage.from('images').getPublicUrl(path);
-        image_url = urlData.publicUrl;
+        images.push(urlData.publicUrl);
       }
     }
+
+    const image_url = images[0] || form.image_url;
 
     const payload = {
       name_ar: form.name_ar, name_en: form.name_en, description_ar: form.description_ar, description_en: form.description_en,
       price: parseFloat(form.price) || 0, discount_price: form.discount_price ? parseFloat(form.discount_price) : null,
-      stock: parseInt(form.stock) || 0, category_id: form.category_id || null, image_url,
+      stock: parseInt(form.stock) || 0, category_id: form.category_id || null, image_url, images,
     };
 
     if (editing) {
@@ -186,8 +191,31 @@ export default function DashboardProductsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('image')}</label>
-            <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} className="text-sm" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{locale === 'ar' ? 'العلامة التجارية' : 'Brand'}</label>
+            <input name="brand" value={form.brand} onChange={handleChange} placeholder={locale === 'ar' ? 'مثال: Samsung, Apple, LG' : 'e.g. Samsung, Apple, LG'} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-sm outline-none focus:ring-2 focus:ring-primary-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{locale === 'ar' ? 'صور المنتج' : 'Product Images'}</label>
+            <input type="file" accept="image/*" multiple onChange={(e) => setImageFiles(Array.from(e.target.files || []))} className="text-sm mb-2" />
+            {existingImages.length > 0 && (
+              <div className="grid grid-cols-4 gap-2 mt-2">
+                {existingImages.map((img, idx) => (
+                  <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setExistingImages(existingImages.filter((_, i) => i !== idx))}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {imageFiles.length > 0 && (
+              <p className="text-xs text-gray-500 mt-1">{imageFiles.length} {locale === 'ar' ? 'صور جديدة محددة' : 'new images selected'}</p>
+            )}
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="outline" onClick={() => setShowModal(false)}>{t('cancel')}</Button>

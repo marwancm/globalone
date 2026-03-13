@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useLocale } from '@/hooks/useLocale';
 import { useCart } from '@/hooks/useCart';
 import { createClient } from '@/lib/supabase/client';
+import { getSupabaseImageUrl } from '@/utils/supabase';
 import ProductCard from '@/components/ui/ProductCard';
 import { ProductCardSkeleton } from '@/components/ui/Skeleton';
 import Button from '@/components/ui/Button';
-import type { Product, Category, HeroSlide } from '@/types';
+import type { Product, Category, HeroSlide, Brand } from '@/types';
 import toast from 'react-hot-toast';
 
 export default function HomePage() {
@@ -17,6 +18,7 @@ export default function HomePage() {
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
@@ -25,10 +27,11 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const [productsRes, categoriesRes, slidesRes] = await Promise.all([
+      const [productsRes, categoriesRes, slidesRes, brandsRes] = await Promise.all([
         supabase.from('products').select('*').order('created_at', { ascending: false }).limit(8),
         supabase.from('categories').select('*').order('created_at', { ascending: false }),
         supabase.from('hero_slides').select('*').eq('active', true).order('sort_order', { ascending: true }),
+        supabase.from('brands').select('*').eq('active', true).order('sort_order', { ascending: true }).then(res => res.error ? { data: [], error: null } : res),
       ]);
       if (productsRes.data) {
         setFeaturedProducts(productsRes.data.slice(0, 4));
@@ -36,6 +39,7 @@ export default function HomePage() {
       }
       if (categoriesRes.data) setCategories(categoriesRes.data);
       if (slidesRes.data && slidesRes.data.length > 0) setHeroSlides(slidesRes.data);
+      if (brandsRes.data) setBrands(brandsRes.data);
       setLoading(false);
     };
     fetchData();
@@ -65,7 +69,7 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero Slider */}
-      <section className="relative h-[400px] md:h-[520px] overflow-hidden bg-gray-900">
+      <section className="relative h-[400px] md:h-[600px] bg-gray-900 overflow-hidden">
         {heroSlides.length > 0 ? (
           <>
             {heroSlides.map((slide, index) => (
@@ -78,7 +82,11 @@ export default function HomePage() {
                 <img
                   src={slide.image_url}
                   alt={locale === 'ar' ? slide.title_ar : slide.title_en}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full md:object-cover object-contain object-center"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="600"%3E%3Crect fill="%23667eea" width="1200" height="600"/%3E%3Ctext fill="%23ffffff" font-family="sans-serif" font-size="48" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3EHero Image%3C/text%3E%3C/svg%3E';
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="absolute inset-0 flex items-end">
@@ -284,22 +292,36 @@ export default function HomePage() {
       </section>
 
       {/* Brands Section */}
-      <section className="py-12 bg-white dark:bg-dark-bg border-y border-gray-200 dark:border-dark-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-center text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-8">
-            {locale === 'ar' ? 'العلامات التجارية الموثوقة' : 'Trusted Brands'}
-          </h3>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center opacity-60 hover:opacity-100 transition-opacity">
-            {['LG', 'Samsung', 'Bosch', 'Sony', 'Apple', 'Philips'].map((brand) => (
-              <div key={brand} className="text-center">
-                <div className="text-2xl font-black text-gray-400 dark:text-gray-600 hover:text-primary-500 transition-colors cursor-pointer">
-                  {brand}
-                </div>
-              </div>
-            ))}
+      {brands.length > 0 && (
+        <section className="py-12 bg-white dark:bg-dark-bg border-y border-gray-200 dark:border-dark-border">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-center text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-8">
+              {locale === 'ar' ? 'العلامات التجارية الموثوقة' : 'Trusted Brands'}
+            </h3>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-6 md:gap-8 items-center">
+              {brands.map((brand) => (
+                <Link
+                  key={brand.id}
+                  href={`/shop?brand=${locale === 'ar' ? brand.name_ar : brand.name_en}`}
+                  className="group flex items-center justify-center p-4 bg-gray-50 dark:bg-dark-card rounded-xl border border-gray-100 dark:border-dark-border hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                >
+                  {brand.logo_url ? (
+                    <img
+                      src={getSupabaseImageUrl(brand.logo_url)}
+                      alt={locale === 'ar' ? brand.name_ar : brand.name_en}
+                      className="w-full h-12 object-contain"
+                    />
+                  ) : (
+                    <div className="text-xl md:text-2xl font-black text-gray-400 dark:text-gray-600 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                      {locale === 'ar' ? brand.name_ar : brand.name_en}
+                    </div>
+                  )}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Newsletter */}
       <section className="py-20 bg-gradient-to-br from-primary-600 via-primary-500 to-primary-700 relative overflow-hidden">

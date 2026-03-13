@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'GlobalOne - Online Store',
   description: 'GlobalOne - Your one-stop online store for the best products at the best prices',
   keywords: 'online store, shopping, ecommerce, GlobalOne',
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
