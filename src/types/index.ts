@@ -14,9 +14,11 @@ export interface Product {
   description_en: string;
   price: number;
   discount_price: number | null;
-  image_url: string;
-  images: string[] | null;
+  discount_start_date: string | null;
+  discount_end_date: string | null;
   stock: number;
+  image_url: string | null;
+  images: string[];
   category_id: string;
   brand?: string;
   created_at: string;

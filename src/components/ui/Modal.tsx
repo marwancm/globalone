@@ -32,16 +32,16 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       <div
         className={classNames(
-          'relative w-full bg-white dark:bg-dark-card rounded-2xl shadow-2xl p-6 z-10',
+          'relative w-full bg-white dark:bg-dark-card rounded-2xl shadow-2xl p-6 z-10 my-8 max-h-[90vh] overflow-y-auto',
           sizes[size]
         )}
       >
         {title && (
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 sticky top-0 bg-white dark:bg-dark-card pb-2 -mt-6 pt-6 z-10">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
             <button
               onClick={onClose}

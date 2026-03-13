@@ -17,7 +17,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
   const name = locale === 'ar' ? product.name_ar : product.name_en;
   const currency = t('currency');
-  const hasDiscount = product.discount_price && product.discount_price < product.price;
+  
+  // Check if discount is active and not expired
+  const now = new Date();
+  const isDiscountActive = product.discount_price && 
+    product.discount_price < product.price &&
+    (!product.discount_start_date || new Date(product.discount_start_date) <= now) &&
+    (!product.discount_end_date || new Date(product.discount_end_date) >= now);
+  
+  const hasDiscount = isDiscountActive;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

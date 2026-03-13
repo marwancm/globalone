@@ -24,7 +24,7 @@ export default function DashboardProductsPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
 
-  const emptyForm = { name_ar: '', name_en: '', description_ar: '', description_en: '', price: '', discount_price: '', stock: '', category_id: '', brand: '', image_url: '' };
+  const emptyForm = { name_ar: '', name_en: '', description_ar: '', description_en: '', price: '', discount_price: '', discount_start_date: '', discount_end_date: '', stock: '', category_id: '', brand: '', image_url: '' };
   const [form, setForm] = useState(emptyForm);
 
   const fetchProducts = async () => {
@@ -45,11 +45,21 @@ export default function DashboardProductsPage() {
   const openEdit = (p: Product) => {
     setEditing(p);
     setForm({
-      name_ar: p.name_ar, name_en: p.name_en, description_ar: p.description_ar || '', description_en: p.description_en || '',
-      price: String(p.price), discount_price: String(p.discount_price || ''), stock: String(p.stock), category_id: p.category_id || '', brand: p.brand || '', image_url: p.image_url || '',
+      name_ar: p.name_ar,
+      name_en: p.name_en,
+      description_ar: p.description_ar,
+      description_en: p.description_en,
+      price: p.price.toString(),
+      discount_price: p.discount_price?.toString() || '',
+      discount_start_date: p.discount_start_date ? p.discount_start_date.split('T')[0] : '',
+      discount_end_date: p.discount_end_date ? p.discount_end_date.split('T')[0] : '',
+      stock: p.stock.toString(),
+      category_id: p.category_id,
+      brand: p.brand || '',
+      image_url: p.image_url || '',
     });
+    setExistingImages(p.images || []);
     setImageFiles([]);
-    setExistingImages(p.images || [p.image_url].filter(Boolean));
     setShowModal(true);
   };
 
@@ -74,10 +84,19 @@ export default function DashboardProductsPage() {
 
     const image_url = images[0] || form.image_url;
 
-    const payload = {
-      name_ar: form.name_ar, name_en: form.name_en, description_ar: form.description_ar, description_en: form.description_en,
-      price: parseFloat(form.price) || 0, discount_price: form.discount_price ? parseFloat(form.discount_price) : null,
-      stock: parseInt(form.stock) || 0, category_id: form.category_id || null, image_url, images,
+    const payload: any = {
+      name_ar: form.name_ar,
+      name_en: form.name_en,
+      description_ar: form.description_ar,
+      description_en: form.description_en,
+      price: parseFloat(form.price),
+      discount_price: form.discount_price ? parseFloat(form.discount_price) : null,
+      discount_start_date: form.discount_start_date || null,
+      discount_end_date: form.discount_end_date || null,
+      stock: parseInt(form.stock),
+      category_id: form.category_id,
+      brand: form.brand || null,
+      images: images,
     };
 
     if (editing) {
@@ -181,6 +200,16 @@ export default function DashboardProductsPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('stock')}</label>
               <input name="stock" type="number" value={form.stock} onChange={handleChange} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-sm outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{locale === 'ar' ? 'تاريخ بداية الخصم' : 'Discount Start Date'}</label>
+              <input name="discount_start_date" type="date" value={form.discount_start_date} onChange={handleChange} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-sm outline-none focus:ring-2 focus:ring-primary-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{locale === 'ar' ? 'تاريخ نهاية الخصم' : 'Discount End Date'}</label>
+              <input name="discount_end_date" type="date" value={form.discount_end_date} onChange={handleChange} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-sm outline-none focus:ring-2 focus:ring-primary-500" />
             </div>
           </div>
           <div>

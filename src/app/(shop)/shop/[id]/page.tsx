@@ -103,7 +103,15 @@ export default function ProductDetailPage() {
   const currency = t('currency');
   const name = product ? (locale === 'ar' ? product.name_ar : product.name_en) : '';
   const description = product ? (locale === 'ar' ? product.description_ar : product.description_en) : '';
-  const hasDiscount = product?.discount_price && product.discount_price < product.price;
+  
+  // Check if discount is active and not expired
+  const now = new Date();
+  const isDiscountActive = product?.discount_price && 
+    product.discount_price < product.price &&
+    (!product.discount_start_date || new Date(product.discount_start_date) <= now) &&
+    (!product.discount_end_date || new Date(product.discount_end_date) >= now);
+  
+  const hasDiscount = isDiscountActive;
 
   if (loading) {
     return (
