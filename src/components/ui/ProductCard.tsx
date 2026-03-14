@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLocale } from '@/hooks/useLocale';
 import { useCart } from '@/hooks/useCart';
 import { formatPrice, getDiscountPercentage } from '@/utils/helpers';
+import { getSupabaseImageUrl } from '@/utils/supabase';
 import type { Product } from '@/types';
 import toast from 'react-hot-toast';
 
@@ -35,12 +36,18 @@ export default function ProductCard({ product }: ProductCardProps) {
     toast.success(locale === 'ar' ? 'تمت الإضافة للسلة' : 'Added to cart');
   };
 
+  const imageUrl = product.images && product.images.length > 0 
+    ? getSupabaseImageUrl(product.images[0]) 
+    : product.image_url 
+    ? getSupabaseImageUrl(product.image_url)
+    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23f3f4f6" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+
   return (
     <Link href={`/shop/${product.id}`} className="group block">
       <div className="bg-white dark:bg-dark-card rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-dark-border hover:-translate-y-1">
         <div className="relative overflow-hidden aspect-square bg-gray-50 dark:bg-gray-800">
           <img
-            src={product.image_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23f3f4f6" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E'}
+            src={imageUrl}
             alt={name}
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -49,11 +56,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
           {hasDiscount && (
-            <div className="absolute top-0 start-0">
+            <div className="absolute top-0 start-0 z-10">
               <div className="relative">
-                <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white px-3 py-2 rounded-br-2xl shadow-lg">
-                  <div className="text-xs font-medium uppercase tracking-wide opacity-90">{locale === 'ar' ? 'خصم' : 'Sale'}</div>
-                  <div className="text-2xl font-black leading-none">-{getDiscountPercentage(product.price, product.discount_price!)}%</div>
+                <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white px-2 py-1.5 sm:px-3 sm:py-2 rounded-br-2xl shadow-lg">
+                  <div className="text-[10px] sm:text-xs font-medium uppercase tracking-wide opacity-90">{locale === 'ar' ? 'خصم' : 'Sale'}</div>
+                  <div className="text-lg sm:text-2xl font-black leading-none">-{getDiscountPercentage(product.price, product.discount_price!)}%</div>
                 </div>
               </div>
             </div>
