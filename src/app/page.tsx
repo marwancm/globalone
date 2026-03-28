@@ -59,6 +59,8 @@ export default function HomePage() {
     setCurrentSlide(index);
   }, []);
 
+  const activeSlide = useMemo(() => heroSlides[currentSlide], [heroSlides, currentSlide]);
+
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
@@ -73,11 +75,16 @@ export default function HomePage() {
       <section className="relative h-[400px] md:h-[600px] bg-gray-900 overflow-hidden">
         {heroSlides.length > 0 ? (
           <>
-            {heroSlides.map((slide, index) => (
+            {heroSlides.map((slide, index) => {
+              const isActive = index === currentSlide;
+              const isNext = index === (currentSlide + 1) % heroSlides.length;
+              if (!isActive && !isNext && heroSlides.length > 2) return null;
+              
+              return (
               <div
                 key={slide.id}
                 className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-                  index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+                  isActive ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'
                 }`}
               >
                 <Image
@@ -87,6 +94,7 @@ export default function HomePage() {
                   sizes="100vw"
                   className="md:object-cover object-contain object-center"
                   priority={index === 0}
+                  quality={index === 0 ? 90 : 75}
                   loading={index === 0 ? 'eager' : 'lazy'}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
@@ -113,7 +121,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            ))}
+            );})}
             {/* Dot Indicators */}
             {heroSlides.length > 1 && (
               <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2.5 z-10">
