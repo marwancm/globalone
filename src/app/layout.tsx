@@ -1,8 +1,23 @@
 import type { Metadata } from 'next';
+import { Inter, Tajawal } from 'next/font/google';
 import './globals.css';
 import Providers from '@/components/providers/Providers';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
+});
+
+const tajawal = Tajawal({
+  subsets: ['arabic'],
+  weight: ['300', '400', '500', '700', '800'],
+  display: 'swap',
+  variable: '--font-tajawal',
+});
 
 export const metadata: Metadata = {
   title: 'GlobalOne - Online Store',
@@ -15,7 +30,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" suppressHydrationWarning className={`${inter.variable} ${tajawal.variable}`}>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
       <body className="min-h-screen flex flex-col bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-white transition-colors duration-200">
         <Providers>
           <Header />
