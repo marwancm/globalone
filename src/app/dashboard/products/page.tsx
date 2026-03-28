@@ -16,6 +16,7 @@ export default function DashboardProductsPage() {
   const currency = t('currency');
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -23,6 +24,7 @@ export default function DashboardProductsPage() {
   const [saving, setSaving] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const emptyForm = { name_ar: '', name_en: '', description_ar: '', description_en: '', price: '', discount_price: '', discount_start_date: '', discount_end_date: '', stock: '', category_id: '', brand: '', image_url: '' };
   const [form, setForm] = useState(emptyForm);
@@ -30,7 +32,10 @@ export default function DashboardProductsPage() {
   const fetchProducts = async () => {
     setLoading(true);
     const { data } = await supabase.from('products').select('*, category:categories(*)').order('created_at', { ascending: false });
-    if (data) setProducts(data as Product[]);
+    if (data) {
+      setProducts(data as Product[]);
+      setFilteredProducts(data as Product[]);
+    }
     setLoading(false);
   };
 
@@ -40,6 +45,20 @@ export default function DashboardProductsPage() {
   };
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredProducts(products);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = products.filter(p => 
+        p.name_ar.toLowerCase().includes(query) ||
+        p.name_en.toLowerCase().includes(query) ||
+        (p.brand && p.brand.toLowerCase().includes(query))
+      );
+      setFilteredProducts(filtered);
+    }
+  }, [searchQuery, products]);
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setImageFiles([]); setExistingImages([]); setShowModal(true); };
   const openEdit = (p: Product) => {
@@ -123,9 +142,23 @@ export default function DashboardProductsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('manageProducts')}</h1>
-        <Button onClick={openAdd}>{t('addProduct')}</Button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-initial">
+            <input
+              type="text"
+              placeholder={locale === 'ar' ? 'ابحث عن منتج...' : 'Search products...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full sm:w-64 px-4 py-2 pe-10 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-sm outline-none focus:ring-2 focus:ring-primary-500"
+            />
+            <svg className="absolute end-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <Button onClick={openAdd}>{t('addProduct')}</Button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-dark-card rounded-2xl border border-gray-100 dark:border-dark-border overflow-hidden">
@@ -141,7 +174,14 @@ export default function DashboardProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-dark-border">
-              {products.map((p) => (
+              {filteredProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                    {searchQuery ? (locale === 'ar' ? 'لا توجد نتائج' : 'No results found') : (locale === 'ar' ? 'لا توجد منتجات' : 'No products')}
+                  </td>
+                </tr>
+              ) : (
+                filteredProducts.map((p) => (
                 <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-dark-bg/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
@@ -162,7 +202,7 @@ export default function DashboardProductsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
