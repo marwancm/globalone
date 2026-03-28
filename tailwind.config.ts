@@ -29,8 +29,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'var(--font-tajawal)', 'sans-serif'],
-        arabic: ['var(--font-tajawal)', 'sans-serif'],
+        sans: ['Inter', 'Tajawal', 'sans-serif'],
+        arabic: ['Tajawal', 'sans-serif'],
       },
     },
   },

@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useLocale } from '@/hooks/useLocale';
 import { useCart } from '@/hooks/useCart';
 import { createClient } from '@/lib/supabase/client';
@@ -59,8 +58,6 @@ export default function HomePage() {
     setCurrentSlide(index);
   }, []);
 
-  const activeSlide = useMemo(() => heroSlides[currentSlide], [heroSlides, currentSlide]);
-
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
@@ -75,27 +72,21 @@ export default function HomePage() {
       <section className="relative h-[400px] md:h-[600px] bg-gray-900 overflow-hidden">
         {heroSlides.length > 0 ? (
           <>
-            {heroSlides.map((slide, index) => {
-              const isActive = index === currentSlide;
-              const isNext = index === (currentSlide + 1) % heroSlides.length;
-              if (!isActive && !isNext && heroSlides.length > 2) return null;
-              
-              return (
+            {heroSlides.map((slide, index) => (
               <div
                 key={slide.id}
                 className={`absolute inset-0 transition-all duration-700 ease-in-out ${
-                  isActive ? 'opacity-100 scale-100 z-10' : 'opacity-0 scale-105 z-0'
+                  index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
                 }`}
               >
-                <Image
+                <img
                   src={slide.image_url}
                   alt={locale === 'ar' ? slide.title_ar : slide.title_en}
-                  fill
-                  sizes="100vw"
-                  className="md:object-cover object-contain object-center"
-                  priority={index === 0}
-                  quality={index === 0 ? 90 : 75}
-                  loading={index === 0 ? 'eager' : 'lazy'}
+                  className="w-full h-full md:object-cover object-contain object-center"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1200" height="600"%3E%3Crect fill="%23667eea" width="1200" height="600"/%3E%3Ctext fill="%23ffffff" font-family="sans-serif" font-size="48" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3EHero Image%3C/text%3E%3C/svg%3E';
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                 <div className="absolute inset-0 flex items-end">
@@ -121,7 +112,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            );})}
+            ))}
             {/* Dot Indicators */}
             {heroSlides.length > 1 && (
               <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2.5 z-10">
@@ -236,7 +227,7 @@ export default function HomePage() {
               >
                 <div className="w-20 h-20 bg-gray-100 dark:bg-dark-bg rounded-2xl flex items-center justify-center mx-auto mb-3 overflow-hidden group-hover:scale-110 transition-transform duration-300">
                   {cat.image_url ? (
-                    <Image src={getSupabaseImageUrl(cat.image_url)} alt={locale === 'ar' ? cat.name_ar : cat.name_en} width={80} height={80} className="w-full h-full object-cover" loading="lazy" />
+                    <img src={getSupabaseImageUrl(cat.image_url)} alt={locale === 'ar' ? cat.name_ar : cat.name_en} className="w-full h-full object-cover" />
                   ) : (
                     <svg className="w-10 h-10 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -319,13 +310,10 @@ export default function HomePage() {
                   className="group flex items-center justify-center p-4 bg-gray-50 dark:bg-dark-card rounded-xl border border-gray-100 dark:border-dark-border hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                 >
                   {brand.logo_url ? (
-                    <Image
+                    <img
                       src={getSupabaseImageUrl(brand.logo_url)}
                       alt={locale === 'ar' ? brand.name_ar : brand.name_en}
-                      width={160}
-                      height={48}
                       className="w-full h-12 object-contain"
-                      loading="lazy"
                     />
                   ) : (
                     <div className="text-xl md:text-2xl font-black text-gray-400 dark:text-gray-600 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">

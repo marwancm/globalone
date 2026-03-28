@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useLocale } from '@/hooks/useLocale';
 import { useCart } from '@/hooks/useCart';
 import { formatPrice, getDiscountPercentage } from '@/utils/helpers';
@@ -14,7 +13,7 @@ interface ProductCardProps {
   product: Product;
 }
 
-function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const { locale, t } = useLocale();
   const { addItem } = useCart();
   const name = locale === 'ar' ? product.name_ar : product.name_en;
@@ -37,27 +36,25 @@ function ProductCard({ product }: ProductCardProps) {
     toast.success(locale === 'ar' ? 'تمت الإضافة للسلة' : 'Added to cart');
   };
 
-  const rawImageUrl = product.images && product.images.length > 0 
-    ? product.images[0] 
-    : product.image_url;
-  const imageUrl = rawImageUrl ? getSupabaseImageUrl(rawImageUrl) : null;
+  const imageUrl = product.images && product.images.length > 0 
+    ? getSupabaseImageUrl(product.images[0]) 
+    : product.image_url 
+    ? getSupabaseImageUrl(product.image_url)
+    : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23f3f4f6" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
 
   return (
     <Link href={`/shop/${product.id}`} className="group block">
       <div className="bg-white dark:bg-dark-card rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-100 dark:border-dark-border hover:-translate-y-1">
         <div className="relative overflow-hidden aspect-square bg-gray-50 dark:bg-gray-800">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={name}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
-              loading="lazy"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">No Image</div>
-          )}
+          <img
+            src={imageUrl}
+            alt={name}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23f3f4f6" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="24" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          />
           {hasDiscount && (
             <div className="absolute top-0 start-0 z-10">
               <div className="relative">
@@ -116,5 +113,3 @@ function ProductCard({ product }: ProductCardProps) {
     </Link>
   );
 }
-
-export default React.memo(ProductCard);

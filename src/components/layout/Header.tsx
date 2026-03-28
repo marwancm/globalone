@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/hooks/useLocale';
 import { useCart } from '@/hooks/useCart';
@@ -79,7 +78,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="GlobalOne" width={120} height={40} className="h-10 w-auto" priority />
+            <img src="/logo.png" alt="GlobalOne" className="h-10 w-auto" />
           </Link>
 
           {/* Search Bar */}
